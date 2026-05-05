@@ -2,8 +2,6 @@
 Tests for PDF service.
 """
 
-import os
-import tempfile
 from unittest.mock import patch, MagicMock
 
 import pytest

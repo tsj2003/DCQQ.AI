@@ -8,10 +8,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
-from app.database import Base, get_db
+from app.database import get_db
 from app.middleware.auth_middleware import get_current_user_id, get_optional_user_id
 from httpx import AsyncClient, ASGITransport
 from app.main import app

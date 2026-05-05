@@ -2,7 +2,7 @@
 Tests for file utilities.
 """
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from app.utils.file_utils import ensure_upload_dir, human_readable_size
 
 

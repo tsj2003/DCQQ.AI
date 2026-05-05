@@ -7,7 +7,6 @@ import uuid
 import pytest
 from unittest.mock import patch, MagicMock
 
-from app.main import app
 from tests.conftest import override_db
 
 

@@ -4,11 +4,10 @@ File upload API endpoints.
 
 import os
 import uuid
-import asyncio
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, BackgroundTasks
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings

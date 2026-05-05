@@ -3,10 +3,8 @@ Tests for vector store service.
 """
 
 import json
-import os
 import pickle
-from pathlib import Path
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import patch
 
 import faiss
 import numpy as np

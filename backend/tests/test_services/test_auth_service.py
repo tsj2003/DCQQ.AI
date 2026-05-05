@@ -3,7 +3,6 @@ Tests for auth service — Google OAuth and JWT.
 """
 
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -119,7 +118,7 @@ class TestGetOrCreateUser:
             "picture": "http://example.com/avatar.png",
         }
 
-        user = await get_or_create_user(mock_db, google_user)
+        _user = await get_or_create_user(mock_db, google_user)
 
         assert mock_db.add.called
         assert mock_db.flush.called

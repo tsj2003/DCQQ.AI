@@ -4,11 +4,10 @@ Extended tests for media API.
 
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
-from app.main import app
 from app.models.document import Document
 from tests.conftest import override_db
 

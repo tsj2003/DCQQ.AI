@@ -18,7 +18,7 @@ from app.services.llm_service import (
 
 @pytest.fixture
 def mock_llm_openai():
-    with patch("app.services.llm_service.AsyncOpenAI") as mock:
+    with patch("app.services.llm_service.AsyncOpenAI") as _mock:
         client = AsyncMock()
         yield client
 

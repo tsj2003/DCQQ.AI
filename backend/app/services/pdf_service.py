@@ -3,7 +3,6 @@ PDF text extraction and chunking service.
 """
 
 import os
-from pathlib import Path
 
 import fitz  # PyMuPDF
 from langchain.text_splitter import RecursiveCharacterTextSplitter

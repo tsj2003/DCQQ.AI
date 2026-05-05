@@ -4,12 +4,11 @@ Edge case tests for chat API.
 
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.main import app
-from app.models.chat import ChatSession, ChatMessage
+from app.models.chat import ChatSession
 from app.models.document import Document
 from tests.conftest import override_db
 

@@ -3,9 +3,9 @@ Tests for redis client module.
 """
 
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock
 
-from app.redis_client import redis_client, close_redis
+from app.redis_client import close_redis
 
 
 @pytest.mark.asyncio

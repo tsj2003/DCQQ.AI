@@ -3,10 +3,7 @@ Tests for authentication service.
 """
 
 import uuid
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch, MagicMock
 
-import pytest
 
 from app.services.auth_service import (
     create_access_token,

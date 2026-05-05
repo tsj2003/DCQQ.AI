@@ -4,7 +4,6 @@ DocQA AI — Main FastAPI Application
 An AI-powered document and multimedia Q&A web application.
 """
 
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 

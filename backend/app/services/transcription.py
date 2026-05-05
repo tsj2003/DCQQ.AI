@@ -222,7 +222,6 @@ def chunk_transcript(
     Returns:
         List of chunk dicts with text and timestamp metadata.
     """
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
 
     segments = transcript.get("segments", [])
     if not segments:
@@ -232,12 +231,6 @@ def chunk_transcript(
     chunks = []
     current_text = ""
     current_segments = []
-
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        separators=["\n\n", "\n", ". ", " ", ""],
-    )
 
     # Group segments into chunks
     for segment in segments:

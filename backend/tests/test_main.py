@@ -5,8 +5,7 @@ Tests for main application - startup, shutdown, and health check.
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 
-from app.main import app, lifespan
-from app.config import get_settings
+from app.main import lifespan
 
 
 @pytest.mark.asyncio

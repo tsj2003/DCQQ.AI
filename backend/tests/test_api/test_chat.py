@@ -8,9 +8,6 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 
-from app.main import app
-from app.database import get_db
-from app.middleware.auth_middleware import get_current_user_id
 from app.models.chat import ChatSession, ChatMessage
 from app.models.document import Document
 from tests.conftest import override_db

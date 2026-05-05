@@ -20,7 +20,7 @@ from app.schemas.chat import (
     ChatSessionListResponse,
     ChatSessionResponse,
 )
-from app.services.llm_service import chat_with_document, chat_with_document_stream
+from app.services.llm_service import chat_with_document_stream
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 

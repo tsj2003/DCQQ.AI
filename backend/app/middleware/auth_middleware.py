@@ -2,7 +2,7 @@
 JWT authentication middleware.
 """
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.services.auth_service import verify_access_token

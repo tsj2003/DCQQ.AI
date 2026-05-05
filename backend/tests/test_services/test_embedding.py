@@ -3,7 +3,7 @@ Tests for embedding service.
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 from app.services.embedding import generate_embeddings, generate_single_embedding
 

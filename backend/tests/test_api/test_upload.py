@@ -9,9 +9,6 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 
-from app.main import app
-from app.database import get_db
-from app.middleware.auth_middleware import get_current_user_id
 from app.models.document import Document
 from tests.conftest import override_db
 
@@ -19,8 +16,6 @@ from tests.conftest import override_db
 @pytest.fixture
 def mock_upload_db():
     session = AsyncMock()
-    # Simulate that flush() triggers default values
-    original_add = session.add
 
     def track_add(obj):
         """Set defaults that SQLAlchemy would normally set on flush."""
@@ -40,7 +35,7 @@ async def test_upload_document_success(async_client, override_auth, mock_upload_
     file_content = b"fake pdf content"
     files = {"file": ("test.pdf", BytesIO(file_content), "application/pdf")}
 
-    with patch("app.api.upload._process_document") as mock_process:
+    with patch("app.api.upload._process_document") as _mock_process:
         response = await async_client.post("/api/documents/upload", files=files)
 
     assert response.status_code == 200

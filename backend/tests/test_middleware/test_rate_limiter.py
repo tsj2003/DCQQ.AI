@@ -4,7 +4,7 @@ Tests for rate limiter middleware.
 
 import pytest
 from fastapi import HTTPException
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 
 from app.middleware.rate_limiter import check_rate_limit, RateLimitMiddleware
 

@@ -2,7 +2,6 @@
 File utility functions.
 """
 
-import os
 from pathlib import Path
 
 from app.config import get_settings

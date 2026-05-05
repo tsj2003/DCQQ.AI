@@ -2,8 +2,7 @@
 Extended tests for utilities - covering all edge cases.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from app.utils.file_utils import ensure_faiss_dir, get_file_extension
 from app.utils.timestamp_utils import seconds_to_hhmmss

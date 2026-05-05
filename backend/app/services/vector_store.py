@@ -2,11 +2,8 @@
 Vector store service using FAISS for semantic search.
 """
 
-import os
-import io
 import json
 import pickle
-import tempfile
 from pathlib import Path
 
 import faiss
