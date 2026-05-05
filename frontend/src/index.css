@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap');
+
+@layer base {
+  body {
+    @apply bg-black text-white antialiased selection:bg-wonder-lime selection:text-black;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Inter', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  
+  .glass-card {
+    @apply bg-[#121212] border border-white/5 hover:border-wonder-lime/30 transition-all duration-300;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-br from-white to-white/60 bg-clip-text text-fill-transparent;
+  }
+
+  .btn-wonder {
+    @apply btn btn-primary normal-case font-bold px-8 rounded-full hover:scale-105 active:scale-95 transition-all;
+  }
+
+  .btn-wonder-outline {
+    @apply btn btn-outline border-white/20 text-white hover:bg-white hover:text-black normal-case font-bold px-8 rounded-full;
+  }
+}
+
+@layer utilities {
+  .text-fill-transparent {
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Custom Animations from Wonder Makers inspiration */
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+.orb {
+  @apply absolute rounded-full filter blur-[100px] opacity-30 pointer-events-none;
+}
+
+.orb-lime {
+  @apply bg-wonder-lime;
+  animation: float 15s ease-in-out infinite;
+}
+
+.orb-accent {
+  @apply bg-wonder-accent;
+  animation: float 20s ease-in-out infinite reverse;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  @apply w-1.5;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-all;
+}
+
+/* Shimmer Effect for loading */
+.shimmer {
+  background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

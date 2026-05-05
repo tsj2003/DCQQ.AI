@@ -1,0 +1,159 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
+jobs:
+  lint-backend:
+    name: Lint Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install ruff
+      - run: ruff check backend/
+      - run: ruff format --check backend/
+
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: cd frontend && npm ci
+      - run: cd frontend && npm run lint
+
+  test-backend:
+    name: Test Backend (95%+ Coverage)
+    runs-on: ubuntu-latest
+    needs: lint-backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: docqa_test
+          POSTGRES_USER: docqa
+          POSTGRES_PASSWORD: docqa_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U docqa"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://docqa:docqa_test_password@localhost:5432/docqa_test
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: test-secret-key-for-ci
+      OPENAI_API_KEY: sk-test-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install dependencies
+        run: cd backend && pip install -r requirements.txt
+      - name: Run tests with coverage
+        run: |
+          cd backend
+          pytest --cov=app --cov-report=xml --cov-report=html --cov-fail-under=95 -v
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/htmlcov/
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    needs: lint-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: cd frontend && npm ci
+      - run: cd frontend && npm run test -- --coverage --coverage.thresholds.lines=95
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t docqa-backend ./backend
+      - name: Build frontend image
+        run: docker build -t docqa-frontend ./frontend
+      - name: Test Docker Compose
+        run: |
+          cp .env.example .env
+          docker compose config
+
+  deploy-gcp:
+    name: Deploy to GCP
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend, build-docker]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      REGION: us-central1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          install_components: 'beta'
+
+      - name: Deploy to Cloud Run
+        run: |
+          # Make scripts executable
+          chmod +x scripts/deploy-gcp.sh
+
+          # Set environment variables for script
+          export PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          export REGION=us-central1
+          export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+
+          # Run deployment (modified to use existing resources if present)
+          ./scripts/deploy-gcp.sh
+
+      - name: Get Frontend URL
+        run: |
+          FRONTEND_URL=$(gcloud run services describe docqa-frontend --region=us-central1 --format='value(status.url)')
+          echo "Deployed to: $FRONTEND_URL"
+          echo "frontend_url=$FRONTEND_URL" >> $GITHUB_ENV

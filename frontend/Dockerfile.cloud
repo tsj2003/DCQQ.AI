@@ -1,0 +1,23 @@
+# DocQA AI Frontend — Cloud Run Optimized
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# Accept backend URL as build argument
+ARG BACKEND_URL
+ENV VITE_BACKEND_URL=${BACKEND_URL}
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Serve with nginx on Cloud Run port
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.cloud.conf /etc/nginx/conf.d/default.conf
+
+# Use PORT env var for Cloud Run
+ENV PORT=8080
+EXPOSE 8080
+
+CMD ["sh", "-c", "sed -i 's/PORT_PLACEHOLDER/${PORT}/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

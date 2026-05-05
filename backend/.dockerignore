@@ -1,0 +1,10 @@
+__pycache__
+.venv
+.env
+.git
+.DS_Store
+*.log
+uploads
+faiss_indices
+.pytest_cache
+*.pyc

@@ -1,0 +1,75 @@
+services:
+  backend:
+    build: ./backend
+    container_name: docqa-backend
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    volumes:
+      - uploads_data:/app/uploads
+      - faiss_data:/app/faiss_indices
+    restart: unless-stopped
+    networks:
+      - docqa-network
+
+  frontend:
+    build: ./frontend
+    container_name: docqa-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - docqa-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: docqa-postgres
+    ports:
+      - "5444:5432"
+    environment:
+      POSTGRES_DB: docqa
+      POSTGRES_USER: docqa
+      POSTGRES_PASSWORD: docqa_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docqa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - docqa-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: docqa-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - docqa-network
+
+volumes:
+  pgdata:
+  redis_data:
+  uploads_data:
+  faiss_data:
+
+networks:
+  docqa-network:
+    driver: bridge
