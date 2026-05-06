@@ -144,9 +144,9 @@ jobs:
           chmod +x scripts/deploy-gcp.sh
 
           # Set environment variables for script
-          export PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-          export REGION=us-central1
-          export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          export PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          export REGION="us-central1"
+          export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
 
           # Run deployment (modified to use existing resources if present)
           ./scripts/deploy-gcp.sh
