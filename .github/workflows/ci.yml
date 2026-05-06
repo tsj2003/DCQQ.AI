@@ -143,16 +143,21 @@ jobs:
           export PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           export REGION="us-central1"
           
+          # Create artifact registry
+          gcloud artifacts repositories create docqa-repo --repository-format=docker --location=$REGION --quiet || true
+          
           # Get SQL connection
           SQL_CONNECTION_NAME=$(gcloud sql instances describe docqa-postgres --format='value(connectionName)' 2>/dev/null || echo "")
           
           # Get Redis IP
           REDIS_IP=$(gcloud redis instances describe docqa-redis --region=$REGION --format='value(host)' 2>/dev/null || echo "10.225.7.155")
           
-          # Build and deploy backend
-          gcloud builds submit backend/ --tag us-central1-docker.pkg.dev/$PROJECT_ID/docqa-repo/docqa-backend --timeout=20m --quiet 2>/dev/null || echo "Build may have failed"
+          # Build backend
+          echo "Building backend..."
+          gcloud builds submit backend/ --tag us-central1-docker.pkg.dev/$PROJECT_ID/docqa-repo/docqa-backend --timeout=20m --quiet
           
           # Deploy to Cloud Run
+          echo "Deploying backend..."
           gcloud run deploy docqa-backend \
             --image us-central1-docker.pkg.dev/$PROJECT_ID/docqa-repo/docqa-backend \
             --region=$REGION \
@@ -164,7 +169,7 @@ jobs:
             --set-secrets=JWT_SECRET_KEY=jwt-secret:latest,OPENAI_API_KEY=openai-api-key:latest \
             --set-env-vars=DATABASE_URL=postgresql+asyncpg://docqauser:password@/docqa?host=/cloudsql/${SQL_CONNECTION_NAME},REDIS_URL=redis://${REDIS_IP}:6379/0,ENVIRONMENT=production \
             --add-cloudsql-instances=$SQL_CONNECTION_NAME \
-            --quiet 2>/dev/null || echo "Deployment may exist"
+            --quiet || true
 
       - name: Deploy Frontend
         run: |
