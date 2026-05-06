@@ -27,10 +27,12 @@ def extract_text_from_pdf(file_path: str) -> list[dict]:
         page = doc.load_page(page_num)
         text = page.get_text("text").strip()
         if text:
-            pages.append({
-                "page": page_num + 1,
-                "text": text,
-            })
+            pages.append(
+                {
+                    "page": page_num + 1,
+                    "text": text,
+                }
+            )
 
     doc.close()
     return pages
@@ -63,14 +65,16 @@ def chunk_text(
     for page_data in pages:
         page_chunks = splitter.split_text(page_data["text"])
         for chunk_text_content in page_chunks:
-            chunks.append({
-                "text": chunk_text_content,
-                "metadata": {
-                    "page": page_data["page"],
-                    "chunk_index": chunk_index,
-                    "source_type": "pdf",
-                },
-            })
+            chunks.append(
+                {
+                    "text": chunk_text_content,
+                    "metadata": {
+                        "page": page_data["page"],
+                        "chunk_index": chunk_index,
+                        "source_type": "pdf",
+                    },
+                }
+            )
             chunk_index += 1
 
     return chunks

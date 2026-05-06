@@ -18,6 +18,7 @@ settings = get_settings()
 _gcs_client = None
 if settings.GCP_STORAGE_BUCKET:
     from google.cloud import storage
+
     _gcs_client = storage.Client(project=settings.GCP_PROJECT_ID)
 
 
@@ -74,7 +75,9 @@ class FAISSVectorStore:
 
         # Create FAISS index
         vectors = np.array(all_embeddings, dtype=np.float32)
-        self.index = faiss.IndexFlatIP(self.dimension)  # Inner product (cosine with normalized vectors)
+        self.index = faiss.IndexFlatIP(
+            self.dimension
+        )  # Inner product (cosine with normalized vectors)
 
         # Normalize vectors for cosine similarity
         faiss.normalize_L2(vectors)
@@ -116,25 +119,27 @@ class FAISSVectorStore:
         for score, idx in zip(scores[0], indices[0]):
             if idx < 0:
                 continue
-            results.append({
-                "text": self.texts[idx],
-                "metadata": self.metadata_list[idx],
-                "score": float(score),
-            })
+            results.append(
+                {
+                    "text": self.texts[idx],
+                    "metadata": self.metadata_list[idx],
+                    "score": float(score),
+                }
+            )
 
         return results
 
     def _save(self):
         """Save index and metadata to disk or Cloud Storage."""
         self._ensure_dir()
-        
+
         # Save locally first
         faiss.write_index(self.index, str(self.index_path))
         with open(self.metadata_path, "w") as f:
             json.dump(self.metadata_list, f)
         with open(self.texts_path, "wb") as f:
             pickle.dump(self.texts, f)
-        
+
         # Upload to GCS if configured
         if _gcs_client and settings.GCP_STORAGE_BUCKET:
             self._upload_to_gcs()
@@ -143,15 +148,15 @@ class FAISSVectorStore:
         """Upload index files to Google Cloud Storage."""
         bucket = _gcs_client.bucket(settings.GCP_STORAGE_BUCKET)
         prefix = f"faiss_indices/{self.document_id}"
-        
+
         # Upload index
         blob = bucket.blob(f"{prefix}/index.faiss")
         blob.upload_from_filename(str(self.index_path))
-        
+
         # Upload metadata
         blob = bucket.blob(f"{prefix}/metadata.json")
         blob.upload_from_filename(str(self.metadata_path))
-        
+
         # Upload texts
         blob = bucket.blob(f"{prefix}/texts.pkl")
         blob.upload_from_filename(str(self.texts_path))
@@ -166,7 +171,7 @@ class FAISSVectorStore:
             with open(self.texts_path, "rb") as f:
                 self.texts = pickle.load(f)
             return
-        
+
         # Try GCS if configured
         if _gcs_client and settings.GCP_STORAGE_BUCKET:
             self._download_from_gcs()
@@ -176,22 +181,22 @@ class FAISSVectorStore:
         try:
             bucket = _gcs_client.bucket(settings.GCP_STORAGE_BUCKET)
             prefix = f"faiss_indices/{self.document_id}"
-            
+
             self._ensure_dir()
-            
+
             # Download index
             blob = bucket.blob(f"{prefix}/index.faiss")
             if blob.exists():
                 blob.download_to_filename(str(self.index_path))
-                
+
                 # Download metadata
                 blob = bucket.blob(f"{prefix}/metadata.json")
                 blob.download_to_filename(str(self.metadata_path))
-                
+
                 # Download texts
                 blob = bucket.blob(f"{prefix}/texts.pkl")
                 blob.download_to_filename(str(self.texts_path))
-                
+
                 # Load into memory
                 self.index = faiss.read_index(str(self.index_path))
                 with open(self.metadata_path, "r") as f:
@@ -205,9 +210,10 @@ class FAISSVectorStore:
     def delete(self):
         """Delete the index from disk and Cloud Storage."""
         import shutil
+
         if self.index_dir.exists():
             shutil.rmtree(self.index_dir)
-        
+
         # Also delete from GCS if configured
         if _gcs_client and settings.GCP_STORAGE_BUCKET:
             try:

@@ -79,9 +79,7 @@ async def test_regenerate_summary(async_client, override_auth, mock_summary_db):
         with patch("app.api.summary.summarize_text") as mock_summarize:
             mock_summarize.return_value = "New summary"
 
-            response = await async_client.post(
-                f"/api/documents/{doc_id}/summary"
-            )
+            response = await async_client.post(f"/api/documents/{doc_id}/summary")
 
             assert response.status_code == 200
             assert response.json()["summary"] == "New summary"

@@ -65,7 +65,10 @@ class TestExtractTextFromPdf:
 
     def test_handles_pdf_open_error(self):
         with patch("os.path.exists", return_value=True):
-            with patch("app.services.pdf_service.fitz.open", side_effect=RuntimeError("Cannot open PDF")):
+            with patch(
+                "app.services.pdf_service.fitz.open",
+                side_effect=RuntimeError("Cannot open PDF"),
+            ):
                 with pytest.raises(RuntimeError, match="Cannot open PDF"):
                     extract_text_from_pdf("/tmp/invalid.pdf")
 

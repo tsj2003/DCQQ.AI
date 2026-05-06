@@ -39,12 +39,12 @@ async def test_process_document_not_found():
     """Test processing when document doesn't exist."""
     mock_db = AsyncMock()
     mock_db.get.return_value = None
-    
+
     # Create async_session mock
     mock_session_cm = AsyncMock()
     mock_session_cm.__aenter__ = AsyncMock(return_value=mock_db)
     mock_session_cm.__aexit__ = AsyncMock(return_value=False)
-    
+
     with patch("app.api.upload.async_session", return_value=mock_session_cm):
         # Should not raise
         await _process_document(str(uuid.uuid4()), "/tmp/test.pdf", "pdf")
@@ -63,16 +63,16 @@ async def test_process_pdf_success():
         status="processing",
         created_at=datetime.now(timezone.utc),
     )
-    
+
     mock_db = AsyncMock()
     mock_db.get.return_value = mock_doc
     mock_db.commit = AsyncMock()
     mock_db.flush = AsyncMock()
-    
+
     mock_session_cm = AsyncMock()
     mock_session_cm.__aenter__ = AsyncMock(return_value=mock_db)
     mock_session_cm.__aexit__ = AsyncMock(return_value=False)
-    
+
     with patch("app.api.upload.async_session", return_value=mock_session_cm):
         with patch("app.api.upload.extract_text_from_pdf") as mock_extract:
             with patch("app.api.upload.chunk_text") as mock_chunk:
@@ -80,15 +80,17 @@ async def test_process_pdf_success():
                     with patch("app.api.upload.get_vector_store") as mock_get_store:
                         with patch("app.api.upload.summarize_chunks") as mock_summary:
                             mock_extract.return_value = [{"page": 1, "text": "content"}]
-                            mock_chunk.return_value = [{"text": "chunk", "metadata": {"page": 1}}]
+                            mock_chunk.return_value = [
+                                {"text": "chunk", "metadata": {"page": 1}}
+                            ]
                             mock_meta.return_value = {"title": "Test"}
                             mock_store = MagicMock()
                             mock_store.build_index = AsyncMock()
                             mock_get_store.return_value = mock_store
                             mock_summary.return_value = "Summary"
-                            
+
                             await _process_document(doc_id, "/tmp/test.pdf", "pdf")
-                            
+
                             assert mock_doc.status == "ready"
                             assert mock_doc.summary == "Summary"
                             mock_db.commit.assert_called()
@@ -107,15 +109,15 @@ async def test_process_audio_success():
         status="processing",
         created_at=datetime.now(timezone.utc),
     )
-    
+
     mock_db = AsyncMock()
     mock_db.get.return_value = mock_doc
     mock_db.commit = AsyncMock()
-    
+
     mock_session_cm = AsyncMock()
     mock_session_cm.__aenter__ = AsyncMock(return_value=mock_db)
     mock_session_cm.__aexit__ = AsyncMock(return_value=False)
-    
+
     with patch("app.api.upload.async_session", return_value=mock_session_cm):
         with patch("app.api.upload.transcribe_media_file") as mock_transcribe:
             with patch("app.api.upload.chunk_transcript") as mock_chunk:
@@ -123,16 +125,18 @@ async def test_process_audio_success():
                     with patch("app.api.upload.summarize_chunks") as mock_summary:
                         mock_transcribe.return_value = {
                             "segments": [{"text": "Hello", "start": 0, "end": 5}],
-                            "full_text": "Hello"
+                            "full_text": "Hello",
                         }
-                        mock_chunk.return_value = [{"text": "chunk", "metadata": {"start_time": 0}}]
+                        mock_chunk.return_value = [
+                            {"text": "chunk", "metadata": {"start_time": 0}}
+                        ]
                         mock_store = MagicMock()
                         mock_store.build_index = AsyncMock()
                         mock_get_store.return_value = mock_store
                         mock_summary.return_value = "Audio summary"
-                        
+
                         await _process_document(doc_id, "/tmp/test.mp3", "audio")
-                        
+
                         assert mock_doc.status == "ready"
                         assert mock_doc.transcript is not None
                         mock_db.commit.assert_called()
@@ -151,19 +155,21 @@ async def test_process_document_error_handling():
         status="processing",
         created_at=datetime.now(timezone.utc),
     )
-    
+
     mock_db = AsyncMock()
     mock_db.get.return_value = mock_doc
     mock_db.commit = AsyncMock()
-    
+
     mock_session_cm = AsyncMock()
     mock_session_cm.__aenter__ = AsyncMock(return_value=mock_db)
     mock_session_cm.__aexit__ = AsyncMock(return_value=False)
-    
+
     with patch("app.api.upload.async_session", return_value=mock_session_cm):
-        with patch("app.api.upload.extract_text_from_pdf", side_effect=Exception("PDF error")):
+        with patch(
+            "app.api.upload.extract_text_from_pdf", side_effect=Exception("PDF error")
+        ):
             await _process_document(doc_id, "/tmp/test.pdf", "pdf")
-            
+
             assert mock_doc.status == "error"
             assert "PDF error" in mock_doc.error_message
             mock_db.commit.assert_called()

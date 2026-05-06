@@ -63,6 +63,7 @@ def override_optional_auth():
 
 def override_db(mock_session):
     """Create a db dependency override that yields the mock session."""
+
     async def _override():
         yield mock_session
 
@@ -131,8 +132,14 @@ def sample_pdf_pages():
     """Sample PDF page data."""
     return [
         {"page": 1, "text": "This is page one content about machine learning and AI."},
-        {"page": 2, "text": "This is page two content about deep learning neural networks."},
-        {"page": 3, "text": "This is page three about natural language processing and transformers."},
+        {
+            "page": 2,
+            "text": "This is page two content about deep learning neural networks.",
+        },
+        {
+            "page": 3,
+            "text": "This is page three about natural language processing and transformers.",
+        },
     ]
 
 
@@ -142,8 +149,18 @@ def sample_transcript():
     return {
         "segments": [
             {"id": 0, "start": 0.0, "end": 5.0, "text": "Welcome to the presentation."},
-            {"id": 1, "start": 5.0, "end": 12.0, "text": "Today we will discuss machine learning."},
-            {"id": 2, "start": 12.0, "end": 20.0, "text": "Neural networks are a key technology."},
+            {
+                "id": 1,
+                "start": 5.0,
+                "end": 12.0,
+                "text": "Today we will discuss machine learning.",
+            },
+            {
+                "id": 2,
+                "start": 12.0,
+                "end": 20.0,
+                "text": "Neural networks are a key technology.",
+            },
         ],
         "full_text": "Welcome to the presentation. Today we will discuss machine learning. Neural networks are a key technology.",
     }

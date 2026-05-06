@@ -58,6 +58,7 @@ class AuthMiddleware:
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
             from starlette.requests import Request
+
             request = Request(scope, receive)
 
             # Try to extract user from Authorization header

@@ -15,14 +15,14 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     ENVIRONMENT: str = "development"  # development, production
-    
+
     # CORS - dynamically set based on environment
     ALLOWED_ORIGINS: list[str] = []
-    
+
     # GCP Settings
     GCP_PROJECT_ID: str = ""
     GCP_STORAGE_BUCKET: str = ""
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Set default CORS origins if not provided
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
                     "http://localhost:3000",
                     "http://localhost:3001",
                     "http://localhost:5173",
-                    "http://localhost:8001"
+                    "http://localhost:8001",
                 ]
 
     # Database

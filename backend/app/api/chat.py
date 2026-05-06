@@ -88,7 +88,9 @@ async def list_chat_sessions(
             )
         )
 
-    return ChatSessionListResponse(sessions=session_responses, total=len(session_responses))
+    return ChatSessionListResponse(
+        sessions=session_responses, total=len(session_responses)
+    )
 
 
 @router.post("/sessions/{session_id}/messages")
@@ -146,12 +148,14 @@ async def send_message(
             # Parse the done event to get the full content
             if "event: done" in event:
                 import json
+
                 data_line = event.split("data: ", 1)[1].strip()
                 done_data = json.loads(data_line)
                 full_content = done_data.get("content", "")
 
             if "event: metadata" in event:
                 import json
+
                 data_line = event.split("data: ", 1)[1].strip()
                 meta_data = json.loads(data_line)
                 timestamps = meta_data.get("timestamps")

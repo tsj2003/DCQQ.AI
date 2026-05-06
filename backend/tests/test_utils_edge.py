@@ -13,13 +13,13 @@ class TestHumanReadableSize:
     def test_tb_size(self):
         """Test terabyte conversion."""
         # 1.5 TB = 1.5 * 1024^4 bytes
-        tb_size = int(1.5 * 1024 ** 4)
+        tb_size = int(1.5 * 1024**4)
         result = human_readable_size(tb_size)
         assert "TB" in result
 
     def test_exact_gb_boundary(self):
         """Test exact GB boundary."""
-        result = human_readable_size(1024 ** 3)
+        result = human_readable_size(1024**3)
         assert result == "1.0 GB"
 
 

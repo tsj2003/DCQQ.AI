@@ -45,11 +45,16 @@ def extract_audio_from_video(video_path: str, output_path: str | None = None) ->
         output_path = tempfile.mktemp(suffix=".mp3")
 
     cmd = [
-        "ffmpeg", "-i", video_path,
+        "ffmpeg",
+        "-i",
+        video_path,
         "-vn",  # No video
-        "-acodec", "libmp3lame",
-        "-ar", "16000",  # 16kHz sample rate for Whisper
-        "-ac", "1",  # Mono
+        "-acodec",
+        "libmp3lame",
+        "-ar",
+        "16000",  # 16kHz sample rate for Whisper
+        "-ac",
+        "1",  # Mono
         "-y",  # Overwrite
         output_path,
     ]
@@ -61,7 +66,9 @@ def extract_audio_from_video(video_path: str, output_path: str | None = None) ->
     return output_path
 
 
-def split_audio_file(audio_path: str, max_size_mb: int = MAX_CHUNK_SIZE_MB) -> list[str]:
+def split_audio_file(
+    audio_path: str, max_size_mb: int = MAX_CHUNK_SIZE_MB
+) -> list[str]:
     """Split large audio file into smaller chunks for Whisper API.
 
     Args:
@@ -78,9 +85,13 @@ def split_audio_file(audio_path: str, max_size_mb: int = MAX_CHUNK_SIZE_MB) -> l
 
     # Get audio duration
     cmd = [
-        "ffprobe", "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
         audio_path,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -96,12 +107,19 @@ def split_audio_file(audio_path: str, max_size_mb: int = MAX_CHUNK_SIZE_MB) -> l
         chunk_path = tempfile.mktemp(suffix=f"_chunk_{i}.mp3")
 
         cmd = [
-            "ffmpeg", "-i", audio_path,
-            "-ss", str(start_time),
-            "-t", str(chunk_duration),
-            "-acodec", "libmp3lame",
-            "-ar", "16000",
-            "-ac", "1",
+            "ffmpeg",
+            "-i",
+            audio_path,
+            "-ss",
+            str(start_time),
+            "-t",
+            str(chunk_duration),
+            "-acodec",
+            "libmp3lame",
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
             "-y",
             chunk_path,
         ]
@@ -234,11 +252,42 @@ def chunk_transcript(
 
     # Group segments into chunks
     for segment in segments:
-        candidate = current_text + " " + segment["text"] if current_text else segment["text"]
+        candidate = (
+            current_text + " " + segment["text"] if current_text else segment["text"]
+        )
 
         if len(candidate) > chunk_size and current_text:
             # Save current chunk
-            chunks.append({
+            chunks.append(
+                {
+                    "text": current_text.strip(),
+                    "metadata": {
+                        "source_type": "media",
+                        "start_time": current_segments[0]["start"],
+                        "end_time": current_segments[-1]["end"],
+                        "segment_ids": [s["id"] for s in current_segments],
+                        "chunk_index": len(chunks),
+                    },
+                }
+            )
+            # Start new chunk with overlap
+            overlap_segments = (
+                current_segments[-2:]
+                if len(current_segments) > 2
+                else current_segments[-1:]
+            )
+            current_text = (
+                " ".join(s["text"] for s in overlap_segments) + " " + segment["text"]
+            )
+            current_segments = overlap_segments + [segment]
+        else:
+            current_text = candidate
+            current_segments.append(segment)
+
+    # Don't forget the last chunk
+    if current_text.strip():
+        chunks.append(
+            {
                 "text": current_text.strip(),
                 "metadata": {
                     "source_type": "media",
@@ -247,26 +296,7 @@ def chunk_transcript(
                     "segment_ids": [s["id"] for s in current_segments],
                     "chunk_index": len(chunks),
                 },
-            })
-            # Start new chunk with overlap
-            overlap_segments = current_segments[-2:] if len(current_segments) > 2 else current_segments[-1:]
-            current_text = " ".join(s["text"] for s in overlap_segments) + " " + segment["text"]
-            current_segments = overlap_segments + [segment]
-        else:
-            current_text = candidate
-            current_segments.append(segment)
-
-    # Don't forget the last chunk
-    if current_text.strip():
-        chunks.append({
-            "text": current_text.strip(),
-            "metadata": {
-                "source_type": "media",
-                "start_time": current_segments[0]["start"],
-                "end_time": current_segments[-1]["end"],
-                "segment_ids": [s["id"] for s in current_segments],
-                "chunk_index": len(chunks),
-            },
-        })
+            }
+        )
 
     return chunks

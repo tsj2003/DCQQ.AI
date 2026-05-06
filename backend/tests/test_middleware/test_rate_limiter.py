@@ -40,6 +40,7 @@ async def test_check_rate_limit_exceeded(mock_redis):
 @pytest.mark.asyncio
 async def test_rate_limit_middleware_pass():
     """Middleware should add rate limit headers on POST."""
+
     async def call_next(request):
         response = MagicMock()
         response.headers = {}
@@ -65,6 +66,7 @@ async def test_rate_limit_middleware_pass():
 @pytest.mark.asyncio
 async def test_rate_limit_middleware_skip_get():
     """Middleware should skip rate limiting for GET requests."""
+
     async def call_next(request):
         return "response"
 

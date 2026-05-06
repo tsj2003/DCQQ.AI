@@ -19,9 +19,9 @@ def mock_upload_db():
 
     def track_add(obj):
         """Set defaults that SQLAlchemy would normally set on flush."""
-        if hasattr(obj, 'created_at') and obj.created_at is None:
+        if hasattr(obj, "created_at") and obj.created_at is None:
             obj.created_at = datetime.now(timezone.utc)
-        if hasattr(obj, 'id') and obj.id is None:
+        if hasattr(obj, "id") and obj.id is None:
             obj.id = uuid.uuid4()
 
     session.add = MagicMock(side_effect=track_add)
@@ -127,9 +127,7 @@ async def test_delete_document(async_client, override_auth, mock_upload_db):
                 mock_store = MagicMock()
                 mock_get_store.return_value = mock_store
 
-                response = await async_client.delete(
-                    f"/api/documents/{doc_id}"
-                )
+                response = await async_client.delete(f"/api/documents/{doc_id}")
 
                 assert response.status_code == 200
                 mock_unlink.assert_called_once_with("/tmp/test.pdf")

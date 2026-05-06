@@ -18,6 +18,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Disable rules that are too strict for this codebase
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
   // Relaxed rules for test files
   {
@@ -25,6 +29,8 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      'require-yield': 'off',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])

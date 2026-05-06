@@ -15,6 +15,7 @@ def test_ensure_upload_dir(tmp_path):
         ensure_upload_dir()
 
     import os
+
     assert os.path.exists(upload_dir)
 
     # Calling again should not fail

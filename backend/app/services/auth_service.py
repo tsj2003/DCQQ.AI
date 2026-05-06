@@ -37,7 +37,9 @@ def create_access_token(user_id: str, email: str) -> tuple[str, int]:
         "jti": str(uuid.uuid4()),
     }
 
-    token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    token = jwt.encode(
+        payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    )
     return token, int(expires_delta.total_seconds())
 
 

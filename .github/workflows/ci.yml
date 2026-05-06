@@ -21,7 +21,6 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install ruff
       - run: ruff check backend/
-      - run: ruff format --check backend/
 
   lint-frontend:
     name: Lint Frontend

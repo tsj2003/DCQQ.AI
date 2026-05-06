@@ -14,7 +14,7 @@ settings = get_settings()
 
 # Rate limit configurations: {path_prefix: (limit, window_seconds)}
 RATE_LIMITS = {
-    "/api/chat": (settings.RATE_LIMIT_CHAT, 60),       # 30 req/min
+    "/api/chat": (settings.RATE_LIMIT_CHAT, 60),  # 30 req/min
     "/api/documents/upload": (settings.RATE_LIMIT_UPLOAD, 3600),  # 10/hour
 }
 

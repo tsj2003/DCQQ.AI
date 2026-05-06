@@ -14,7 +14,11 @@ from app.config import get_settings
 from app.database import get_db, async_session
 from app.middleware.auth_middleware import get_current_user_id
 from app.models.document import Document
-from app.schemas.document import DocumentDetailResponse, DocumentListResponse, DocumentResponse
+from app.schemas.document import (
+    DocumentDetailResponse,
+    DocumentListResponse,
+    DocumentResponse,
+)
 from app.services.pdf_service import extract_text_from_pdf, chunk_text, get_pdf_metadata
 from app.services.transcription import transcribe_media_file, chunk_transcript
 from app.services.vector_store import get_vector_store
@@ -66,7 +70,9 @@ async def _process_document(document_id: str, file_path: str, file_type: str):
                 doc.transcript = transcript
                 chunks = chunk_transcript(transcript)
                 doc.metadata_json = {
-                    "duration": transcript["segments"][-1]["end"] if transcript["segments"] else 0,
+                    "duration": transcript["segments"][-1]["end"]
+                    if transcript["segments"]
+                    else 0,
                     "segment_count": len(transcript["segments"]),
                 }
 

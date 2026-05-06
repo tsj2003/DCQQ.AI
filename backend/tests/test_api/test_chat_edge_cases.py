@@ -16,13 +16,15 @@ from tests.conftest import override_db
 @pytest.fixture
 def mock_chat_db():
     session = AsyncMock()
+
     def track_add(obj):
-        if hasattr(obj, 'created_at') and obj.created_at is None:
+        if hasattr(obj, "created_at") and obj.created_at is None:
             obj.created_at = datetime.now(timezone.utc)
-        if hasattr(obj, 'id') and obj.id is None:
+        if hasattr(obj, "id") and obj.id is None:
             obj.id = uuid.uuid4()
+
     session.add = MagicMock(side_effect=track_add)
-    
+
     mock_ctx = AsyncMock()
     mock_ctx.__aenter__ = AsyncMock(return_value=None)
     mock_ctx.__aexit__ = AsyncMock(return_value=False)
@@ -88,7 +90,9 @@ async def test_create_session_no_title(async_client, override_auth, mock_chat_db
 
 
 @pytest.mark.asyncio
-async def test_create_session_document_not_ready(async_client, override_auth, mock_chat_db):
+async def test_create_session_document_not_ready(
+    async_client, override_auth, mock_chat_db
+):
     """Test creating session when document is processing."""
     override_db(mock_chat_db)
 

@@ -72,16 +72,16 @@ async def test_get_me_success(async_client, override_auth):
 async def test_guest_login(async_client, mock_db_session):
     """Guest login should create a guest user and return token."""
     override_db(mock_db_session)
-    
+
     mock_user = MagicMock()
     mock_user.id = uuid.uuid4()
     mock_user.email = "guest@docqa.ai"
-    
+
     with patch("app.api.auth.get_or_create_user") as mock_get_or_create:
         mock_get_or_create.return_value = mock_user
-        
+
         response = await async_client.post("/api/auth/guest")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "access_token" in data
@@ -92,16 +92,16 @@ async def test_guest_login(async_client, mock_db_session):
 async def test_refresh_token(async_client, override_auth, mock_db_session):
     """Refresh token should return new token."""
     override_db(mock_db_session)
-    
+
     mock_user = MagicMock()
     mock_user.id = uuid.UUID(override_auth)
     mock_user.email = "test@test.com"
-    
+
     with patch("app.api.auth.get_user_by_id") as mock_get_user:
         mock_get_user.return_value = mock_user
-        
+
         response = await async_client.post("/api/auth/refresh")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "access_token" in data
@@ -109,15 +109,17 @@ async def test_refresh_token(async_client, override_auth, mock_db_session):
 
 
 @pytest.mark.asyncio
-async def test_refresh_token_user_not_found(async_client, override_auth, mock_db_session):
+async def test_refresh_token_user_not_found(
+    async_client, override_auth, mock_db_session
+):
     """Refresh token for non-existent user should 404."""
     override_db(mock_db_session)
-    
+
     with patch("app.api.auth.get_user_by_id") as mock_get_user:
         mock_get_user.return_value = None
-        
+
         response = await async_client.post("/api/auth/refresh")
-        
+
         assert response.status_code == 404
 
 
@@ -125,12 +127,12 @@ async def test_refresh_token_user_not_found(async_client, override_auth, mock_db
 async def test_auth_callback_oauth_failure(async_client, mock_db_session):
     """OAuth callback failure should return 400."""
     override_db(mock_db_session)
-    
+
     with patch("app.api.auth.exchange_google_code") as mock_exchange:
         mock_exchange.side_effect = Exception("OAuth error")
-        
+
         response = await async_client.get("/api/auth/google/callback?code=invalid")
-        
+
         assert response.status_code == 400
         assert "OAuth failed" in response.json()["detail"]
 
@@ -139,11 +141,11 @@ async def test_auth_callback_oauth_failure(async_client, mock_db_session):
 async def test_get_me_user_not_found(async_client, override_auth, mock_db_session):
     """Get current user when user doesn't exist should 404."""
     override_db(mock_db_session)
-    
+
     with patch("app.api.auth.get_user_by_id") as mock_get_user:
         mock_get_user.return_value = None
-        
+
         response = await async_client.get("/api/auth/me")
-        
+
         assert response.status_code == 404
         assert "User not found" in response.json()["detail"]

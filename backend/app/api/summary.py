@@ -58,13 +58,16 @@ async def regenerate_summary(
     content = ""
     if doc.file_type == "pdf":
         from app.services.pdf_service import extract_text_from_pdf
+
         pages = extract_text_from_pdf(doc.file_path)
         content = "\n\n".join(p["text"] for p in pages)
     elif doc.transcript:
         content = doc.transcript.get("full_text", "")
 
     if not content:
-        raise HTTPException(status_code=400, detail="No content available for summarization")
+        raise HTTPException(
+            status_code=400, detail="No content available for summarization"
+        )
 
     summary = await summarize_text(content)
     doc.summary = summary

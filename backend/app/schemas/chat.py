@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 class TimestampRef(BaseModel):
     """Timestamp reference for audio/video content."""
+
     start: float
     end: float
     text: str
@@ -17,17 +18,20 @@ class TimestampRef(BaseModel):
 
 class SourceRef(BaseModel):
     """Source reference for PDF content."""
+
     page: int | None = None
     text: str
 
 
 class ChatMessageRequest(BaseModel):
     """Chat message input."""
+
     content: str
 
 
 class ChatMessageResponse(BaseModel):
     """Chat message response."""
+
     id: UUID
     role: str
     content: str
@@ -40,12 +44,14 @@ class ChatMessageResponse(BaseModel):
 
 class ChatSessionCreate(BaseModel):
     """Create chat session request."""
+
     document_id: UUID
     title: str | None = None
 
 
 class ChatSessionResponse(BaseModel):
     """Chat session response."""
+
     id: UUID
     document_id: UUID
     title: str | None
@@ -57,5 +63,6 @@ class ChatSessionResponse(BaseModel):
 
 class ChatSessionListResponse(BaseModel):
     """List of chat sessions."""
+
     sessions: list[ChatSessionResponse]
     total: int

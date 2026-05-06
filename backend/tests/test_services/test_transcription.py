@@ -190,8 +190,12 @@ class TestTranscribeMediaFile:
         mock_client.audio.transcriptions.create = AsyncMock(return_value=mock_response)
 
         with patch("app.services.transcription.AsyncOpenAI", return_value=mock_client):
-            with patch("app.services.transcription.extract_audio_from_video") as mock_extract:
-                with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as audio_f:
+            with patch(
+                "app.services.transcription.extract_audio_from_video"
+            ) as mock_extract:
+                with tempfile.NamedTemporaryFile(
+                    suffix=".mp3", delete=False
+                ) as audio_f:
                     audio_f.write(b"extracted audio")
                     audio_path = audio_f.name
 
@@ -200,7 +204,9 @@ class TestTranscribeMediaFile:
                 with patch("os.path.getsize") as mock_size:
                     mock_size.return_value = 5 * 1024 * 1024
 
-                    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as video_f:
+                    with tempfile.NamedTemporaryFile(
+                        suffix=".mp4", delete=False
+                    ) as video_f:
                         video_f.write(b"video data")
                         video_path = video_f.name
 

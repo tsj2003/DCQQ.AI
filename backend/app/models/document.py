@@ -24,10 +24,14 @@ class Document(Base):
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
     filename: Mapped[str] = mapped_column(String(500), nullable=False)
-    file_type: Mapped[str] = mapped_column(String(20), nullable=False)  # pdf, audio, video
+    file_type: Mapped[str] = mapped_column(
+        String(20), nullable=False
+    )  # pdf, audio, video
     file_path: Mapped[str] = mapped_column(Text, nullable=False)
     file_size: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    status: Mapped[str] = mapped_column(String(20), default="processing")  # processing, ready, error
+    status: Mapped[str] = mapped_column(
+        String(20), default="processing"
+    )  # processing, ready, error
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     transcript: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
@@ -38,7 +42,11 @@ class Document(Base):
 
     # Relationships
     user = relationship("User", back_populates="documents")
-    chat_sessions = relationship("ChatSession", back_populates="document", cascade="all, delete-orphan")
+    chat_sessions = relationship(
+        "ChatSession", back_populates="document", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
-        return f"<Document(id={self.id}, filename={self.filename}, type={self.file_type})>"
+        return (
+            f"<Document(id={self.id}, filename={self.filename}, type={self.file_type})>"
+        )

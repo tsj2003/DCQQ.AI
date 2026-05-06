@@ -22,12 +22,12 @@ def mock_summary_db():
 async def test_get_summary_not_found(async_client, override_auth, mock_summary_db):
     """Test getting summary for non-existent document."""
     override_db(mock_summary_db)
-    
+
     doc_id = str(uuid.uuid4())
     mock_summary_db.get.return_value = None
-    
+
     response = await async_client.get(f"/api/documents/{doc_id}/summary")
-    
+
     assert response.status_code == 404
 
 
@@ -35,7 +35,7 @@ async def test_get_summary_not_found(async_client, override_auth, mock_summary_d
 async def test_get_summary_wrong_owner(async_client, override_auth, mock_summary_db):
     """Test getting summary for document owned by another user."""
     override_db(mock_summary_db)
-    
+
     doc_id = str(uuid.uuid4())
     mock_doc = Document(
         id=uuid.UUID(doc_id),
@@ -46,30 +46,34 @@ async def test_get_summary_wrong_owner(async_client, override_auth, mock_summary
         created_at=datetime.now(timezone.utc),
     )
     mock_summary_db.get.return_value = mock_doc
-    
+
     response = await async_client.get(f"/api/documents/{doc_id}/summary")
-    
+
     assert response.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_regenerate_summary_not_found(async_client, override_auth, mock_summary_db):
+async def test_regenerate_summary_not_found(
+    async_client, override_auth, mock_summary_db
+):
     """Test regenerating summary for non-existent document."""
     override_db(mock_summary_db)
-    
+
     doc_id = str(uuid.uuid4())
     mock_summary_db.get.return_value = None
-    
+
     response = await async_client.post(f"/api/documents/{doc_id}/summary")
-    
+
     assert response.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_regenerate_summary_wrong_owner(async_client, override_auth, mock_summary_db):
+async def test_regenerate_summary_wrong_owner(
+    async_client, override_auth, mock_summary_db
+):
     """Test regenerating summary for document owned by another user."""
     override_db(mock_summary_db)
-    
+
     doc_id = str(uuid.uuid4())
     mock_doc = Document(
         id=uuid.UUID(doc_id),
@@ -79,9 +83,9 @@ async def test_regenerate_summary_wrong_owner(async_client, override_auth, mock_
         created_at=datetime.now(timezone.utc),
     )
     mock_summary_db.get.return_value = mock_doc
-    
+
     response = await async_client.post(f"/api/documents/{doc_id}/summary")
-    
+
     assert response.status_code == 404
 
 
@@ -89,7 +93,7 @@ async def test_regenerate_summary_wrong_owner(async_client, override_auth, mock_
 async def test_regenerate_summary_video(async_client, override_auth, mock_summary_db):
     """Test regenerating summary for video with transcript."""
     override_db(mock_summary_db)
-    
+
     doc_id = str(uuid.uuid4())
     mock_doc = Document(
         id=uuid.UUID(doc_id),
@@ -101,11 +105,11 @@ async def test_regenerate_summary_video(async_client, override_auth, mock_summar
         created_at=datetime.now(timezone.utc),
     )
     mock_summary_db.get.return_value = mock_doc
-    
+
     with patch("app.api.summary.summarize_text") as mock_summarize:
         mock_summarize.return_value = "Video summary"
-        
+
         response = await async_client.post(f"/api/documents/{doc_id}/summary")
-        
+
         assert response.status_code == 200
         assert response.json()["summary"] == "Video summary"

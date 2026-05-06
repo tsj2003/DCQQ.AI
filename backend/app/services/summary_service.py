@@ -96,7 +96,7 @@ async def _map_reduce_summarize(client: AsyncOpenAI, text: str) -> str:
 
     # Reduce: combine summaries
     combined = "\n\n".join(
-        f"Section {i+1}: {s}" for i, s in enumerate(chunk_summaries)
+        f"Section {i + 1}: {s}" for i, s in enumerate(chunk_summaries)
     )
 
     response = await client.chat.completions.create(

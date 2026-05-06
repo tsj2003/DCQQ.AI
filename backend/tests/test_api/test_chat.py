@@ -16,11 +16,12 @@ from tests.conftest import override_db
 @pytest.fixture
 def mock_chat_db():
     session = AsyncMock()
+
     # Simulate that add + flush triggers default values
     def track_add(obj):
-        if hasattr(obj, 'created_at') and obj.created_at is None:
+        if hasattr(obj, "created_at") and obj.created_at is None:
             obj.created_at = datetime.now(timezone.utc)
-        if hasattr(obj, 'id') and obj.id is None:
+        if hasattr(obj, "id") and obj.id is None:
             obj.id = uuid.uuid4()
 
     session.add = MagicMock(side_effect=track_add)
@@ -60,7 +61,9 @@ async def test_create_chat_session_success(async_client, override_auth, mock_cha
 
 
 @pytest.mark.asyncio
-async def test_create_chat_session_processing_doc(async_client, override_auth, mock_chat_db):
+async def test_create_chat_session_processing_doc(
+    async_client, override_auth, mock_chat_db
+):
     override_db(mock_chat_db)
 
     doc_id = str(uuid.uuid4())
@@ -107,9 +110,7 @@ async def test_get_chat_history(async_client, override_auth, mock_chat_db):
     mock_result.scalars().all.return_value = [mock_msg]
     mock_chat_db.execute.return_value = mock_result
 
-    response = await async_client.get(
-        f"/api/chat/sessions/{session_id}/messages"
-    )
+    response = await async_client.get(f"/api/chat/sessions/{session_id}/messages")
 
     assert response.status_code == 200
     data = response.json()
@@ -139,9 +140,7 @@ async def test_send_message_stream(async_client, override_auth, mock_chat_db):
         yield 'event: token\ndata: {"content": "Hello", "done": false}\n\n'
         yield 'event: done\ndata: {"content": "Hello", "done": true}\n\n'
 
-    with patch(
-        "app.api.chat.chat_with_document_stream", side_effect=mock_stream
-    ):
+    with patch("app.api.chat.chat_with_document_stream", side_effect=mock_stream):
         response = await async_client.post(
             f"/api/chat/sessions/{session_id}/messages",
             json={"content": "Hi"},

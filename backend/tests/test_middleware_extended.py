@@ -11,6 +11,7 @@ from app.middleware.rate_limiter import RateLimitMiddleware
 @pytest.mark.asyncio
 async def test_rate_limit_middleware_skips_without_user_id():
     """Test that rate limit middleware skips if no user_id in state."""
+
     async def call_next(request):
         response = MagicMock()
         response.headers = {}

@@ -64,8 +64,12 @@ async def test_get_media_stream_success(async_client, override_auth, mock_media_
                     with patch("anyio.open_file") as mock_anyio:
                         mock_file = AsyncMock()
                         mock_file.read = AsyncMock(return_value=b"audio data")
-                        mock_anyio.return_value.__aenter__ = AsyncMock(return_value=mock_file)
-                        mock_anyio.return_value.__aexit__ = AsyncMock(return_value=False)
+                        mock_anyio.return_value.__aenter__ = AsyncMock(
+                            return_value=mock_file
+                        )
+                        mock_anyio.return_value.__aexit__ = AsyncMock(
+                            return_value=False
+                        )
 
                         response = await async_client.get(f"/api/media/{doc_id}")
                         # FileResponse may return 200 or fail trying to open the file

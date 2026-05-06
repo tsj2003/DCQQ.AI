@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 class TokenResponse(BaseModel):
     """JWT token response."""
+
     access_token: str
     token_type: str = "bearer"
     expires_in: int
@@ -17,6 +18,7 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     """User profile response."""
+
     id: UUID
     email: str
     name: str | None
@@ -29,5 +31,6 @@ class UserResponse(BaseModel):
 
 class GoogleAuthCallback(BaseModel):
     """Google OAuth callback data."""
+
     code: str
     state: str | None = None

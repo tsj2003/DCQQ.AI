@@ -77,11 +77,13 @@ def _extract_timestamps_from_results(search_results: list[dict]) -> list[dict]:
     for result in search_results:
         meta = result.get("metadata", {})
         if meta.get("source_type") == "media":
-            timestamps.append({
-                "start": meta.get("start_time", 0),
-                "end": meta.get("end_time", 0),
-                "text": result["text"][:200],  # First 200 chars as preview
-            })
+            timestamps.append(
+                {
+                    "start": meta.get("start_time", 0),
+                    "end": meta.get("end_time", 0),
+                    "text": result["text"][:200],  # First 200 chars as preview
+                }
+            )
     return timestamps
 
 
@@ -94,10 +96,12 @@ def _extract_sources_from_results(search_results: list[dict]) -> list[dict]:
         if meta.get("source_type") == "pdf":
             page = meta.get("page")
             if page and page not in seen_pages:
-                sources.append({
-                    "page": page,
-                    "text": result["text"][:200],
-                })
+                sources.append(
+                    {
+                        "page": page,
+                        "text": result["text"][:200],
+                    }
+                )
                 seen_pages.add(page)
     return sources
 
