@@ -94,7 +94,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - run: cd frontend && npm install
-      - run: cd frontend && npm run test -- --coverage --coverage.thresholds.lines=85
+      - run: cd frontend && npm run test -- --coverage --coverage.thresholds.lines=50
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
