@@ -16,7 +16,7 @@ describe('FileUpload Component', () => {
     render(<FileUpload onUploadComplete={onUploadComplete} />);
 
     const file = new File(['hello'], 'hello.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText(/Browse/i) || document.getElementById('file-input');
+    const input = document.querySelector('input[type="file"]');
     
     // Simulate file selection
     fireEvent.change(input!, { target: { files: [file] } });
@@ -48,7 +48,7 @@ describe('FileUpload Component', () => {
     render(<FileUpload onUploadComplete={() => {}} />);
 
     const file = new File(['too big'], 'large.pdf', { type: 'application/pdf' });
-    const input = document.getElementById('file-input');
+    const input = document.querySelector('input[type="file"]');
     
     fireEvent.change(input!, { target: { files: [file] } });
 
