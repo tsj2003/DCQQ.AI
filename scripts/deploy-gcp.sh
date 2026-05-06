@@ -1,6 +1,4 @@
 #!/bin/bash
-set -e
-
 # DocQA AI - GCP Deployment Script
 # This script deploys the application to Google Cloud Platform
 
@@ -45,7 +43,7 @@ fi
 JWT_SECRET=$(openssl rand -base64 32)
 
 echo -e "${GREEN}Step 1: Enabling required APIs...${NC}"
-gcloud services enable run.googleapis.com sqladmin.googleapis.com redis.googleapis.com secretmanager.googleapis.com storage.googleapis.com cloudbuild.googleapis.com --quiet
+gcloud services enable run.googleapis.com sqladmin.googleapis.com redis.googleapis.com secretmanager.googleapis.com storage.googleapis.com cloudbuild.googleapis.com --quiet 2>/dev/null || echo -e "${YELLOW}APIs may already be enabled or permission denied${NC}"
 
 # Create secrets
 echo -e "${GREEN}Step 2: Creating secrets in Secret Manager...${NC}"

@@ -58,6 +58,12 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role="roles/cloudbuild.builds.editor" \
   --quiet
 
+# Allow enabling APIs
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/serviceusage.admin" \
+  --quiet
+
 # Create and download key
 echo "Creating service account key..."
 gcloud iam service-accounts keys create gcp-sa-key.json \
