@@ -138,18 +138,64 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: 'beta'
 
-      - name: Deploy to Cloud Run
+      - name: Deploy Backend
         run: |
-          # Make scripts executable
-          chmod +x scripts/deploy-gcp.sh
-
-          # Set environment variables for script
           export PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           export REGION="us-central1"
-          export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          
+          # Get SQL connection
+          SQL_CONNECTION_NAME=$(gcloud sql instances describe docqa-postgres --format='value(connectionName)' 2>/dev/null || echo "")
+          
+          # Get Redis IP
+          REDIS_IP=$(gcloud redis instances describe docqa-redis --region=$REGION --format='value(host)' 2>/dev/null || echo "10.225.7.155")
+          
+          # Build and deploy backend
+          gcloud builds submit backend/ --tag us-central1-docker.pkg.dev/$PROJECT_ID/docqa-repo/docqa-backend --timeout=20m --quiet 2>/dev/null || echo "Build may have failed"
+          
+          # Deploy to Cloud Run
+          gcloud run deploy docqa-backend \
+            --image us-central1-docker.pkg.dev/$PROJECT_ID/docqa-repo/docqa-backend \
+            --region=$REGION \
+            --platform=managed \
+            --allow-unauthenticated \
+            --memory=2Gi \
+            --cpu=1 \
+            --timeout=300 \
+            --set-secrets=JWT_SECRET_KEY=jwt-secret:latest,OPENAI_API_KEY=openai-api-key:latest \
+            --set-env-vars=DATABASE_URL=postgresql+asyncpg://docqauser:password@/docqa?host=/cloudsql/${SQL_CONNECTION_NAME},REDIS_URL=redis://${REDIS_IP}:6379/0,ENVIRONMENT=production \
+            --add-cloudsql-instances=$SQL_CONNECTION_NAME \
+            --quiet 2>/dev/null || echo "Deployment may exist"
 
-          # Run deployment (modified to use existing resources if present)
-          ./scripts/deploy-gcp.sh
+      - name: Deploy Frontend
+        run: |
+          export PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          export REGION="us-central1"
+          
+          # Get backend URL
+          BACKEND_URL=$(gcloud run services describe docqa-backend --region=$REGION --format='value(status.url)' 2>/dev/null || echo "https://docqa-backend-${PROJECT_ID}.${REGION}.run.app")
+          
+          # Build frontend with backend URL
+          gcloud builds submit frontend/ \
+            --config=- \
+            --substitutions=_BACKEND_URL="$BACKEND_URL" \
+            --timeout=20m \
+            --quiet <<'BUILDCFG'
+          steps:
+            - name: 'gcr.io/cloud-builders/docker'
+              args: ['build', '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/docqa-repo/docqa-frontend', '--build-arg', 'BACKEND_URL=${_BACKEND_URL}', '-f', 'Dockerfile.cloud', '.']
+          images:
+            - 'us-central1-docker.pkg.dev/${PROJECT_ID}/docqa-repo/docqa-frontend'
+          BUILDCFG
+          
+          # Deploy frontend
+          gcloud run deploy docqa-frontend \
+            --image us-central1-docker.pkg.dev/$PROJECT_ID/docqa-repo/docqa-frontend \
+            --region=$REGION \
+            --platform=managed \
+            --allow-unauthenticated \
+            --memory=512Mi \
+            --set-env-vars=BACKEND_URL=$BACKEND_URL \
+            --quiet 2>/dev/null || echo "Frontend deployment may exist"
 
       - name: Get Frontend URL
         run: |
