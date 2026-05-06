@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -31,6 +31,13 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': 'off',
       'require-yield': 'off',
       'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+  // Context files export both components and hooks
+  {
+    files: ['**/context/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

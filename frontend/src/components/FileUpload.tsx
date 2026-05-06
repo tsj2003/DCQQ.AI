@@ -50,11 +50,12 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
           setUploadState({ file: null, progress: 0, status: 'idle' });
           onUploadComplete();
         }, 2000);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { detail?: string } } };
         setUploadState((prev) => ({
           ...prev,
           status: 'error',
-          error: err.response?.data?.detail || 'Upload failed',
+          error: error.response?.data?.detail || 'Upload failed',
         }));
       }
     },
