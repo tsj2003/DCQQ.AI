@@ -29,7 +29,8 @@ describe('useChat Hook', () => {
     async function* mockStream() {
       yield { content: 'The', done: false };
       yield { content: ' sky', done: false };
-      yield { content: ' is blue.', done: true, timestamps: [{ start: 1, end: 2, text: 'blue' }] };
+      yield { content: ' is blue.', done: false };
+      yield { done: true, timestamps: [{ start: 1, end: 2, text: 'blue' }] };
     }
     vi.spyOn(chatApi, 'sendMessageStream').mockReturnValue(mockStream() as any);
 
