@@ -153,6 +153,8 @@ jobs:
 
       - name: Get Frontend URL
         run: |
-          FRONTEND_URL=$(gcloud run services describe docqa-frontend --region=us-central1 --format='value(status.url)')
-          echo "Deployed to: $FRONTEND_URL"
-          echo "frontend_url=$FRONTEND_URL" >> $GITHUB_ENV
+          FRONTEND_URL=$(gcloud run services describe docqa-frontend --region=us-central1 --format='value(status.url)' 2>/dev/null || echo "Service not yet deployed")
+          echo "Frontend URL: $FRONTEND_URL"
+          if [ "$FRONTEND_URL" != "Service not yet deployed" ]; then
+            echo "frontend_url=$FRONTEND_URL" >> $GITHUB_ENV
+          fi
