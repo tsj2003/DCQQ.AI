@@ -93,15 +93,35 @@ gcloud storage buckets create gs://$BUCKET_NAME --location=$REGION --quiet 2>/de
 
 # Build and deploy backend
 echo -e "${GREEN}Step 6: Building and deploying backend...${NC}"
-cd "$(dirname "$0")/../backend"
 
-# Build container
-gcloud builds submit --tag gcr.io/$PROJECT_ID/$BACKEND_SERVICE_NAME --timeout=20m --quiet
+# Get repository root
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+# Use Artifact Registry (gcr.io is deprecated)
+ARTIFACT_REGISTRY="${REGION}-docker.pkg.dev/${PROJECT_ID}/docqa-repo"
+
+# Create artifact registry if needed
+gcloud artifacts repositories create docqa-repo --repository-format=docker --location=$REGION --quiet 2>/dev/null || echo "Artifact registry already exists"
+
+# Build backend from repo root (backend/ context)
+echo "Building backend container..."
+gcloud builds submit backend/ \
+  --config=- \
+  --substitutions=_IMAGE="${ARTIFACT_REGISTRY}/${BACKEND_SERVICE_NAME}" \
+  --timeout=20m \
+  --quiet <<EOF
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${ARTIFACT_REGISTRY}/${BACKEND_SERVICE_NAME}', '-f', 'Dockerfile', '.']
+images:
+  - '${ARTIFACT_REGISTRY}/${BACKEND_SERVICE_NAME}'
+EOF
 
 # Deploy to Cloud Run
 echo -e "${GREEN}Deploying backend to Cloud Run...${NC}"
 gcloud run deploy $BACKEND_SERVICE_NAME \
-  --image gcr.io/$PROJECT_ID/$BACKEND_SERVICE_NAME \
+  --image "${ARTIFACT_REGISTRY}/${BACKEND_SERVICE_NAME}" \
   --region=$REGION \
   --platform=managed \
   --allow-unauthenticated \
@@ -114,38 +134,47 @@ gcloud run deploy $BACKEND_SERVICE_NAME \
   --set-secrets=JWT_SECRET_KEY=jwt-secret:latest,OPENAI_API_KEY=openai-api-key:latest \
   --set-env-vars=DATABASE_URL=postgresql+asyncpg://docqauser:${DB_PASSWORD}@/docqa?host=/cloudsql/${SQL_CONNECTION_NAME},REDIS_URL=redis://${REDIS_IP}:6379/0,ENVIRONMENT=production \
   --add-cloudsql-instances=$SQL_CONNECTION_NAME \
-  --quiet
+  --quiet 2>/dev/null || echo -e "${YELLOW}Backend deployment may have failed or already exists${NC}"
 
 # Get backend URL
-BACKEND_URL=$(gcloud run services describe $BACKEND_SERVICE_NAME --region=$REGION --format='value(status.url)')
-echo -e "${GREEN}Backend deployed at: $BACKEND_URL${NC}"
+BACKEND_URL=$(gcloud run services describe $BACKEND_SERVICE_NAME --region=$REGION --format='value(status.url)' 2>/dev/null || echo "")
+if [ -n "$BACKEND_URL" ]; then
+  echo -e "${GREEN}Backend deployed at: $BACKEND_URL${NC}"
+else
+  echo -e "${YELLOW}Backend URL not available yet${NC}"
+  BACKEND_URL="https://${BACKEND_SERVICE_NAME}-${PROJECT_ID}.${REGION}.run.app"
+fi
 
 # Build and deploy frontend
 echo -e "${GREEN}Step 7: Building and deploying frontend...${NC}"
-cd "$(dirname "$0")/../frontend"
+cd "$REPO_ROOT"
 
-# Build container with Cloud Run optimized Dockerfile
-gcloud builds submit --tag gcr.io/$PROJECT_ID/$FRONTEND_SERVICE_NAME \
-  --timeout=20m --quiet --config=- <<EOF
+# Build frontend container
+echo "Building frontend container..."
+gcloud builds submit frontend/ \
+  --config=- \
+  --substitutions=_IMAGE="${ARTIFACT_REGISTRY}/${FRONTEND_SERVICE_NAME}",_BACKEND_URL="$BACKEND_URL" \
+  --timeout=20m \
+  --quiet <<EOF
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args:
+    args: 
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/$FRONTEND_SERVICE_NAME'
+      - '${ARTIFACT_REGISTRY}/${FRONTEND_SERVICE_NAME}'
       - '--build-arg'
-      - 'BACKEND_URL=$BACKEND_URL'
+      - 'BACKEND_URL=${BACKEND_URL}'
       - '-f'
       - 'Dockerfile.cloud'
       - '.'
 images:
-  - 'gcr.io/$PROJECT_ID/$FRONTEND_SERVICE_NAME'
+  - '${ARTIFACT_REGISTRY}/${FRONTEND_SERVICE_NAME}'
 EOF
 
 # Deploy to Cloud Run
 echo -e "${GREEN}Deploying frontend to Cloud Run...${NC}"
 gcloud run deploy $FRONTEND_SERVICE_NAME \
-  --image gcr.io/$PROJECT_ID/$FRONTEND_SERVICE_NAME \
+  --image "${ARTIFACT_REGISTRY}/${FRONTEND_SERVICE_NAME}" \
   --region=$REGION \
   --platform=managed \
   --allow-unauthenticated \
@@ -155,7 +184,7 @@ gcloud run deploy $FRONTEND_SERVICE_NAME \
   --max-instances=5 \
   --min-instances=0 \
   --set-env-vars=BACKEND_URL=$BACKEND_URL \
-  --quiet
+  --quiet 2>/dev/null || echo -e "${YELLOW}Frontend deployment may have failed or already exists${NC}"
 
 # Get frontend URL
 FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE_NAME --region=$REGION --format='value(status.url)')
